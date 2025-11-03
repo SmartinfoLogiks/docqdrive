@@ -15,15 +15,15 @@ export async function startLaiPluginClient() {
 
     ws.on("open", () => console.log("Connected to LAI Plugin server"));
 
-    ws.on("message", async msg => {
+    ws.on("message", async message => {
       try {
-        const command = JSON.parse(msg.toString());
+        const command = JSON.parse(message.toString());
         console.log("Received LAI command:", command);
 
         let response;
         if (command.command) {
           const result = await runTool(command);
-          response = { status: "success", msgid: command.msgid, data: result };
+          response = { status: "success", messageid: command.messageid, data: result };
         } else if (command.type) {
           response = { status: "success", ack: true };
         } else {

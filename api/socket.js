@@ -6,9 +6,9 @@ export async function startWebSocketServer() {
   const wss = new WebSocketServer({ port });
 
   wss.on("connection", ws => {
-    ws.on("message", async msg => {
+    ws.on("message", async message => {
       try {
-        const command = JSON.parse(msg.toString());
+        const command = JSON.parse(message.toString());
         console.log("Received WebSocket command:", command);
         const response = await runTool(command);
         ws.send(JSON.stringify(response));

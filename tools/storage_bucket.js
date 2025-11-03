@@ -29,12 +29,15 @@ export async function run(message, params, file) {
     case "create_bucket": {
       const { bucket_name, storage_type } = params;
 
-      if (!bucket_name || !storage_type) {
-        return {
-          status: "error",
-          message: "Missing required parameters: bucket_name or storage_type",
-        };
-      }
+      // if (!bucket_name || !storage_type) {
+      //   return {
+      //     status: "error",
+      //     message: "Missing required parameters: bucket_name or storage_type",
+      //   };
+      // }
+
+          
+          
 
       switch (storage_type) {
         case "local":
@@ -54,12 +57,12 @@ export async function run(message, params, file) {
       const { bucket, storage_type, path, filename, mimetype, mode, exp } = params;
 
       // 🛠 path is optional, so don’t force it to exist
-      if (!bucket || !storage_type || !filename || !mimetype || !mode || !exp) {
-        return {
-          status: "error",
-          message: "Missing required parameters for upload_file",
-        };
-      }
+      // if (!bucket || !storage_type || !filename || !mimetype || !mode || !exp) {
+      //   return {
+      //     status: "error",
+      //     message: "Missing required parameters for upload_file",
+      //   };
+      // }
 
       switch (storage_type) {
         case "local":

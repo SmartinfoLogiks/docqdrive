@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { uploadFileSchema } from "../validations/uploadFileValidation.js";
+import { insertFileRecord } from "../db/fileQueries.js"; // 👈 new import
 
 /**
  * Upload a file to a local bucket folder.
@@ -26,7 +28,21 @@ export async function uploadLocalBucket(
   file,
   overwrite = false
 ) {
+
+  
   try {
+    const { error } = uploadFileSchema.validate({
+      bucket,
+      storage_type,
+      uploadPath,
+      filename,
+      mimetype,
+      mode,
+      exp,
+      overwrite,
+    });
+    if (error) throw new Error(error.details[0].message);
+    
     if (storage_type !== "local") {
       throw new Error(`Unsupported storage type: ${storage_type}`);
     }
@@ -76,20 +92,38 @@ export async function uploadLocalBucket(
       throw new Error(`Invalid mode: ${mode}. Use "attachment" or "content".`);
     }
 
+    const stats = fs.statSync(destFilePath);
+    const fileSize = stats.size;
+
+   // console.log('',fileSize);
+
+    //console.log('uuuuuuu',filename);
+    
+    
+
     // Build metadata
     const metadata = {
-      bucket,
+      file_name: filename,  // correct key name for DB,
+      relative_path: `/buckets/${bucket}${uploadPath ? `/${uploadPath}` : ""}/${filename}`,
       storage_type,
-      filename,
+      bucket,
+      size: fileSize || 0,  // ensure number
       mimetype,
-      mode,
-      path: `/buckets/${bucket}${uploadPath ? `/${uploadPath}` : ""}/${filename}`,
       exp,
+      mode,
+   // path: `/buckets/${bucket}${uploadPath ? `/${uploadPath}` : ""}/${filename}`,
       uploaded_at: new Date().toISOString(),
       url: `/buckets/${bucket}${uploadPath ? `/${uploadPath}` : ""}/${filename}`,
     };
 
-    console.log("File uploaded successfully:", metadata);
+    console.log('meta',metadata);
+    
+
+    await insertFileRecord(metadata);
+
+    console.log("File uploaded and metadata inserted:", metadata);
+
+  //console.log("File uploaded successfully:", metadata);
 
     return {
       success: true,

@@ -1,9 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { createBucketSchema } from '../validations/createBucketValidation.js';
+
 
 export async function createLocalBucket(bucket_name) {
 
   try {
+    const { error } = createBucketSchema.validate({
+            bucket_name
+          });
+
+    if (error) throw new Error(error.details[0].message);      
     const parentdir = path.resolve(process.cwd(), '');
     const basedir = path.join(parentdir, "buckets");
 
