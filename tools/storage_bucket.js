@@ -71,7 +71,7 @@ export async function run(message, params, file) {
 
       switch (storage_type) {
         case "local":
-          return await downloadLocalBucket(fileId);
+          return await downloadLocalBucket(fileId,bucket);
         case "s3":
           return { status: "error", message: "S3 download not yet implemented" };
         case "one_drive":

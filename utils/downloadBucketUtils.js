@@ -3,10 +3,10 @@ import fs from "fs";
 import path from "path";
 import { getFileById } from "../models/fileModel.js";
 
-export async function downloadLocalBucket(fileId) {
+export async function downloadLocalBucket(fileId,bucket) {
   try {
     // 1. Fetch metadata from DB
-    const fileRecord = await getFileById(fileId);
+    const fileRecord = await getFileById(fileId,bucket);
     
     if (!fileRecord) throw new Error("File not found or blocked.");
 
