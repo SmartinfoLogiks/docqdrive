@@ -15,6 +15,9 @@ import {
 
 import multer from "multer";// Resolve absolute path to the "buckets" directory
 
+import downloadRouter from "../routes/downloadRouter.js";
+
+
 
 dotenv.config();
 
@@ -53,6 +56,8 @@ export async function runRestServer() {
   const app = express();
   app.use(cors());
   app.use(express.json());
+
+  app.use(downloadRouter);
 
   app.post("/initiate_run", (req, res) => {
     try {

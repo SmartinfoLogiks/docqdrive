@@ -18,7 +18,7 @@ async function getFileByIdMySQL(fileId,bucket) {
   const sql = `
     SELECT *
     FROM file_tbl
-    WHERE id = ? AND bucket = ? and blocked = 'false'
+    WHERE id = ? AND bucket = ?
     LIMIT 1
   `;
 
