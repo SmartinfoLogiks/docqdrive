@@ -51,14 +51,7 @@ function processToolBackground(tool, message, params, refId) {
 export async function runRestServer() {
   const app = express();
 
-  //  app.use("/download", (req, res, next) => {
-  //   // Disable compression / transfer encoding for binary responses
-  //   //res.removeHeader("Transfer-Encoding");
-  //   res.setHeader("Cache-Control", "no-transform");
-  //   //res.setHeader("Transfer-Encoding", ""); 
-  //   //res.removeHeader("Transfer-Encoding");
-  //   next();
-  // });
+  
   app.use(downloadRouter);
   
   app.use(cors());

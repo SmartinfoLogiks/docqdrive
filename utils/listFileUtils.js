@@ -1,10 +1,10 @@
-// utils/listBucketUtils.js
 import fs from "fs";
 import path from "path";
+import mime from "mime-types";
 
 /**
  * List only files from a given bucket path (local storage).
- * Returns name, size, and last modified timestamp for each file.
+ * Returns name, size, mimetype, and last modified timestamp for each file.
  */
 export async function listLocalBucket(bucket, filepath = "") {
   try {
@@ -22,10 +22,13 @@ export async function listLocalBucket(bucket, filepath = "") {
         const fullPath = path.join(dirPath, item.name);
         const stats = fs.statSync(fullPath);
 
+        const mimetype = mime.lookup(item.name) || "application/octet-stream";
+
         files.push({
           name: item.name,
           size: stats.size,
           modified: stats.mtime,
+          mimetype,
         });
       }
     }
