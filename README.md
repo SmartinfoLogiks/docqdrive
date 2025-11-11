@@ -239,7 +239,7 @@ CRON_SCHEDULE=*/1 * * * *
 
 ---
 
-## 8. Deploying on Remote Server (Ubuntu Example)
+## 8. Deploying on Remote Server 
 
 1. SSH into server
 2. Install Node + MySQL
@@ -253,7 +253,7 @@ npm install
 npm start
 ```
 
-Optional: PM2 for forever-running service:
+
 
 
 
