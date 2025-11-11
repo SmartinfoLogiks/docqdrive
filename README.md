@@ -261,13 +261,20 @@ npm start
 
 # API Endpoints
 
-## 1. Create Bucket
+## 1. List Storege Type
+
+```
+POST /run?tool=storage_bucket&message=list_storage_types' 
+```
+
+
+## 2. Create Bucket
 
 ```
 POST /run?tool=storage_bucket&message=create_bucket&storage_type=local&bucket_name=mybucket
 ```
 
-## 2. Upload File (Form-Data)
+## 3. Upload File (Form-Data)
 
 ```
 POST /run?tool=storage_bucket&message=upload_file&storage_type=local&bucket=mybucket&filename=test.pdf&mimetype=application/pdf&mode=attachment
@@ -282,7 +289,7 @@ POST /run?tool=storage_bucket&message=upload_file&storage_type=local&bucket=mybu
 }
 ```
 
-## 3. Generate Download Link
+## 4. Generate Download Link
 
 ```
 When requesting a file through the API:
@@ -322,7 +329,7 @@ Files like images, PDFs, text files, etc. open directly in the browser instead o
 
 
 
-## 4. Actual File Download
+## 6. Actual File Download
 
 ```
 GET /download/:token?download=false
@@ -332,13 +339,13 @@ GET /download/:token?download=true
 
 Verifies token and streams file.
 
-## 5. List Files
+## 7. List Files
 
 ```
 POST /run?tool=storage_bucket&message=list_files&storage_type=local&bucket=mybucket
 ```
 
-## 6. List Directories
+## 8. List Directories
 
 ```
 POST /run?tool=storage_bucket&message=list_dir&storage_type=local&bucket=mybucket
