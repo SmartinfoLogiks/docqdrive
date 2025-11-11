@@ -35,7 +35,8 @@ export const uploadFileSchema = Joi.object({
     'text/plain',
     'video/mp4',
     'audio/mpeg',
-    'application/zip'
+    'application/zip',
+    'application/octet-stream'
   )
   .required()
   .messages({

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import mime from "mime-types";
 import { verifyDownloadToken } from "./downloadToken.js";
 import { getFileById } from "../models/fileModel.js";
 
@@ -11,7 +12,7 @@ import { getFileById } from "../models/fileModel.js";
  */
 export async function handleSecureDownload(token, res, downloadFlag) {
   try {
-    const secret = process.env.DOWNLOAD_TOKEN_SECRET || 'cvbnm,defrtgyui';
+    const secret = process.env.DOWNLOAD_TOKEN_SECRET || "cvbnm,defrtgyui";
     if (!secret) {
       console.error("DOWNLOAD_TOKEN_SECRET missing in environment.");
       return res.status(500).json({ success: false, error: "Server misconfigured" });
@@ -50,7 +51,7 @@ export async function handleSecureDownload(token, res, downloadFlag) {
       return res.status(403).json({ success: false, error: "File is expired" });
     }
 
-    // 3. Verify file existence
+    // 3. Check physical file
     const filePath = path.join(process.cwd(), fileRecord.relative_path);
     if (!fs.existsSync(filePath)) {
       console.error("File not found on disk:", filePath);
@@ -62,26 +63,25 @@ export async function handleSecureDownload(token, res, downloadFlag) {
 
     console.log(`File exists at ${filePath} with size: ${stat.size} bytes`);
 
-    // 4. Decide download behavior (INLINE vs ATTACHMENT)
-    let disposition;
+    // 4. Detect correct MIME
+    const mimeType = mime.lookup(fileName) || "application/octet-stream";
+    console.log("Detected MIME type:", mimeType);
 
-    if (downloadFlag === "true") {
-      disposition = `attachment; filename="${fileName}"`;
-    } else {
-      disposition = `inline; filename="${fileName}"`;
-    }
-
+    // 5. Inline or attachment?
+    const disposition =
+      downloadFlag === "true"
+        ? `attachment; filename="${fileName}"`
+        : `inline; filename="${fileName}"`;
 
     res.setHeader("Content-Disposition", disposition);
-    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Type", mimeType);
     res.setHeader("Content-Length", stat.size);
-    res.setHeader("Cache-Control", "no-transform");
-    res.removeHeader("Transfer-Encoding");
+    res.setHeader("Cache-Control", "no-transform, no-store");
 
     console.log(`Content-Disposition applied: ${disposition}`);
     console.log("Starting file stream...");
 
-    // 5. Stream file safely
+    // 6. Stream file
     const fileStream = fs.createReadStream(filePath);
     let bytesSent = 0;
 
@@ -93,18 +93,15 @@ export async function handleSecureDownload(token, res, downloadFlag) {
       console.error("Error streaming file:", err);
       if (!res.headersSent) {
         return res.status(500).json({ success: false, error: "Failed to download file" });
-      } else {
-        res.end();
       }
+      res.end();
     });
 
     fileStream.on("end", () => {
       console.log(`File download complete: ${fileName}`);
-      console.log(`Bytes sent: ${bytesSent} / ${stat.size}`);
+      console.log(`Bytes sent: ${bytesSent}/${stat.size}`);
       if (bytesSent !== stat.size) {
         console.warn("WARNING: Streamed bytes do not match file size!");
-      } else {
-        console.log("File streamed successfully with matching size.");
       }
     });
 
