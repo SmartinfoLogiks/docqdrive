@@ -21,7 +21,7 @@ export async function handleSecureDownload(token, res, downloadFlag) {
       return res.status(500).json({ success: false, error: "Server misconfigured" });
     }
 
-    console.log("🔹 Incoming download request with token:", token);
+    console.log("Incoming download request with token:", token);
     console.log("Requested downloadFlag:", downloadFlag);
 
     // 1. Verify token → get payload

@@ -57,7 +57,7 @@ export async function uploadLocalBucket(
     
     const bucketDir = path.join(baseDir, bucket);
 
-    console.log(bucketDir);
+    
     
     
     if (!fs.existsSync(bucketDir)) {

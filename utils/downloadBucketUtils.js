@@ -22,7 +22,7 @@ export async function downloadLocalBucket(fileId, bucket, downloadFlag = "false"
 
     const baseDir = process.env.BASE_STORAGE_PATH || process.cwd(); 
     const filePath = path.join(baseDir, fileRecord.relative_path);
-    console.log(filePath,'nnnn');
+   
     
 
     if (!fs.existsSync(filePath)) {
