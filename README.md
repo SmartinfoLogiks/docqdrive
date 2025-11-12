@@ -83,6 +83,11 @@ BASE_DOWNLOAD_URL=http://your-server-ip:8000
 DOWNLOAD_TOKEN_SECRET=your-long-secret-key
 DOWNLOAD_TOKEN_EXPIRY=600
 
+# Storage Configuration
+# All buckets and files will be stored under this base path
+BASE_STORAGE_PATH=
+
+
 CRON_SCHEDULE=*/1 * * * *
 ```
 
