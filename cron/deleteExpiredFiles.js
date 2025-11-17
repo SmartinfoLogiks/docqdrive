@@ -7,6 +7,7 @@ import dotenv from "dotenv"
 
 dotenv.config();
 
+
 // Helper function to get current unix timestamp
 const getUnixNow = () => Math.floor(Date.now() / 1000);
 
