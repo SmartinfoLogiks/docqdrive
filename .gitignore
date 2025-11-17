@@ -6,15 +6,17 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+<<<<<<< HEAD
 logs/
-.env
+
 .DS_Store
 tmp/
 buckets/
-db.md
-to.md
 
 
+
+=======
+>>>>>>> adfc3ecc61804fba283562ddfa48462ed0bb41d8
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
