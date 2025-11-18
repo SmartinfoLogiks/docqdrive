@@ -1,0 +1,379 @@
+{
+	"info": {
+		"_postman_id": "05797f0b-2014-42b0-8f04-81479ba6afc1",
+		"name": "DocuDrive Tooling",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49344461",
+		"_collection_link": "https://unicotest2024-2855347.postman.co/workspace/nick's-Workspace~70f55551-bfc1-4aec-89f9-9e099b9ce9da/collection/49344461-05797f0b-2014-42b0-8f04-81479ba6afc1?action=share&source=collection_link&creator=49344461"
+	},
+	"item": [
+		{
+			"name": "list storage types",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/home/silkadmin/all-session-msg-group.txt"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{tooling_base_url}}/run?tool=storage_bucket&message=list_storage_types",
+					"host": [
+						"{{tooling_base_url}}"
+					],
+					"path": [
+						"run"
+					],
+					"query": [
+						{
+							"key": "tool",
+							"value": "storage_bucket"
+						},
+						{
+							"key": "message",
+							"value": "list_storage_types"
+						},
+						{
+							"key": "path",
+							"value": "/dir1/dir2",
+							"disabled": true
+						},
+						{
+							"key": "bucket",
+							"value": "test_bucket",
+							"disabled": true
+						},
+						{
+							"key": "filename",
+							"value": "testing3.txt",
+							"disabled": true
+						},
+						{
+							"key": "mimetype",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "storage_type",
+							"value": "local",
+							"disabled": true
+						},
+						{
+							"key": "mode",
+							"value": "content",
+							"disabled": true
+						},
+						{
+							"key": "exp",
+							"value": "1000",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create storage bucket",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{tooling_base_url}}/run?tool=storage_bucket&message=create_bucket&bucket_name=test_bucket37&storage_type=local",
+					"host": [
+						"{{tooling_base_url}}"
+					],
+					"path": [
+						"run"
+					],
+					"query": [
+						{
+							"key": "tool",
+							"value": "storage_bucket"
+						},
+						{
+							"key": "message",
+							"value": "create_bucket"
+						},
+						{
+							"key": "bucket_name",
+							"value": "test_bucket37"
+						},
+						{
+							"key": "storage_type",
+							"value": "local"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload file to bucket",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/home/silk/Downloads/efZlVGpu59.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{tooling_base_url}}/run?tool=storage_bucket&message=upload_file&bucket=test_bucket37&storage_type=local&path=&filename=test59.pdf&mimetype=pdf&mode=attachment&exp=1763193010",
+					"host": [
+						"{{tooling_base_url}}"
+					],
+					"path": [
+						"run"
+					],
+					"query": [
+						{
+							"key": "tool",
+							"value": "storage_bucket"
+						},
+						{
+							"key": "message",
+							"value": "upload_file"
+						},
+						{
+							"key": "bucket",
+							"value": "test_bucket37"
+						},
+						{
+							"key": "storage_type",
+							"value": "local"
+						},
+						{
+							"key": "path",
+							"value": ""
+						},
+						{
+							"key": "filename",
+							"value": "test59.pdf"
+						},
+						{
+							"key": "mimetype",
+							"value": "pdf"
+						},
+						{
+							"key": "mode",
+							"value": "attachment"
+						},
+						{
+							"key": "exp",
+							"value": "1763193010"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list files",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{tooling_base_url}}/run?tool=storage_bucket&message=list_files&bucket=test_bucket37&filepath=&storage_type=local",
+					"host": [
+						"{{tooling_base_url}}"
+					],
+					"path": [
+						"run"
+					],
+					"query": [
+						{
+							"key": "tool",
+							"value": "storage_bucket"
+						},
+						{
+							"key": "message",
+							"value": "list_files"
+						},
+						{
+							"key": "bucket",
+							"value": "test_bucket37"
+						},
+						{
+							"key": "filepath",
+							"value": ""
+						},
+						{
+							"key": "storage_type",
+							"value": "local"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list directories",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{tooling_base_url}}/run?tool=storage_bucket&message=list_dir&bucket=&filepath=&storage_type=local",
+					"host": [
+						"{{tooling_base_url}}"
+					],
+					"path": [
+						"run"
+					],
+					"query": [
+						{
+							"key": "tool",
+							"value": "storage_bucket"
+						},
+						{
+							"key": "message",
+							"value": "list_dir"
+						},
+						{
+							"key": "bucket",
+							"value": ""
+						},
+						{
+							"key": "filepath",
+							"value": ""
+						},
+						{
+							"key": "storage_type",
+							"value": "local"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.0.27:9006/download/eyJpZCI6IjhjNDllMmFkLWJlZTgtMTFmMC1iZjczLTAyNDJhYzExMDAwMyIsImV4cCI6IjE3NjI4NTY2ODY4NjQwMCIsImJ1Y2tldCI6InRlc3RfYnVja2V0NDQifQ.3g_iNUadHvMoq5OEz3mwfahYXmpwvmQogLyo7ZdohwM?download=false",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"27"
+					],
+					"port": "9006",
+					"path": [
+						"download",
+						"eyJpZCI6IjhjNDllMmFkLWJlZTgtMTFmMC1iZjczLTAyNDJhYzExMDAwMyIsImV4cCI6IjE3NjI4NTY2ODY4NjQwMCIsImJ1Y2tldCI6InRlc3RfYnVja2V0NDQifQ.3g_iNUadHvMoq5OEz3mwfahYXmpwvmQogLyo7ZdohwM"
+					],
+					"query": [
+						{
+							"key": "download",
+							"value": "false"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get download url",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{tooling_base_url}}/run?tool=storage_bucket&message=download_file&fileId=b4143496-bf97-11f0-bf73-0242ac110003&storage_type=local&bucket=test_bucket37&download=false",
+					"host": [
+						"{{tooling_base_url}}"
+					],
+					"path": [
+						"run"
+					],
+					"query": [
+						{
+							"key": "tool",
+							"value": "storage_bucket"
+						},
+						{
+							"key": "message",
+							"value": "download_file"
+						},
+						{
+							"key": "fileId",
+							"value": "b4143496-bf97-11f0-bf73-0242ac110003"
+						},
+						{
+							"key": "storage_type",
+							"value": "local"
+						},
+						{
+							"key": "bucket",
+							"value": "test_bucket37"
+						},
+						{
+							"key": "download",
+							"value": "false"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://192.168.0.20:8518",
+			"type": "default",
+			"tooling_base_url":"http://192.168.0.20:9006"
+		},
+		{
+			"key": "tooling_base_url",
+			"value": "http://192.168.0.20:9006",
+			"type": "default"
+		}
+	]
+}
