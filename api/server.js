@@ -8,16 +8,14 @@ import {
   runTool,
   listAvailableTools,
   listWorkingTools,
-  listNotWorkingTools
+  listNotWorkingTools,
 } from "./run.js";
 
-import multer from "multer";// Resolve absolute path to the "buckets" directory
+import multer from "multer"; // Resolve absolute path to the "buckets" directory
 import downloadRouter from "../routes/downloadRouter.js";
-import { startDeleteExpiredFilesCron } from "../cron/deleteExpiredFiles.js";  // <-- add this
+import { startDeleteExpiredFilesCron } from "../cron/deleteExpiredFiles.js"; // <-- add this
 
 dotenv.config();
-
-
 
 const DATA_DIR = "data";
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
@@ -35,15 +33,15 @@ function processToolBackground(tool, message, params, refId) {
   params.reference_id = refId;
   // You can replace this with actual tool import
   import(`./tools/unstructured_chunks.js`)
-    .then(toolModule => toolModule.run(message, params))
-    .then(result => {
+    .then((toolModule) => toolModule.run(message, params))
+    .then((result) => {
       fs.writeFileSync(
         path.join(DATA_DIR, `${refId}.json`),
         JSON.stringify(result, null, 2)
       );
       console.log(`Finished background processing for ${refId}`);
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Background task failed:", err);
     });
 }
@@ -51,13 +49,10 @@ function processToolBackground(tool, message, params, refId) {
 export async function runRestServer() {
   const app = express();
 
-  
   app.use(downloadRouter);
-  
+
   app.use(cors());
   app.use(express.json());
-
-
 
   app.post("/initiate_run", (req, res) => {
     try {
@@ -75,7 +70,6 @@ export async function runRestServer() {
     }
   });
 
-
   app.get("/get_result", (req, res) => {
     const refId = req.query.reference_id;
     const cached = getCachedResult(refId);
@@ -86,11 +80,7 @@ export async function runRestServer() {
     }
   });
 
-
-
   const upload = multer({ dest: "tmp/" }); // temporary upload directory
-
-
 
   const bucketsDir = path.join(process.cwd(), "buckets");
 
@@ -102,10 +92,10 @@ export async function runRestServer() {
       const { tool, message = "", ...params } = req.query;
       if (!tool) return res.status(400).json({ error: "Tool required" });
 
-
-      // Merge req.body (for content mode) and req.file (for attachment mode)
       if (req.file) params.file = req.file;
       else if (req.body.file) params.file = req.body.file;
+
+      if (req.body.url) params.url = req.body.url;
 
       // prepare command object
       const command = { command: "run", tool, message, params };
@@ -118,7 +108,6 @@ export async function runRestServer() {
     }
   });
 
-
   app.get("/list_tools", (_, res) => res.json({ tools: listAvailableTools() }));
   app.get("/list_usefull_tools", (_, res) =>
     res.json({ tools: listWorkingTools() })
@@ -128,7 +117,6 @@ export async function runRestServer() {
   );
 
   app.post("/", (_, res) => res.json({ status: "running" }));
-
 
   //Add your cron start here
   startDeleteExpiredFilesCron();

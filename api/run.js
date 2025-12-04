@@ -2,8 +2,6 @@ import fs from "fs";
 import path from "path";
 const toolsDir = path.resolve("tools");
 
-
-
 export async function runTool(command) {
   const toolName = (command.tool || "").toLowerCase();
   const message = command.message || "";
@@ -38,25 +36,24 @@ export async function runTool(command) {
   }
 }
 
-
-
 export function listAvailableTools() {
   return fs
     .readdirSync(toolsDir)
-    .filter(f => f.endsWith(".js") && !f.startsWith("_"))
-    .map(f => ({ name: f.replace(".js", "") }));
+    .filter((f) => f.endsWith(".js") && !f.startsWith("_"))
+    .map((f) => ({ name: f.replace(".js", "") }));
 }
 
 export function listWorkingTools() {
   // Load from tools.json
   try {
     const config = JSON.parse(fs.readFileSync("tools.json", "utf-8"));
-    return Object.values(config).filter(
-      t => {
-        if (!fs.existsSync(path.resolve("tools", `${t.name}.js`))) return false;
-        return (t.inputSchema && Object.keys(t.inputSchema).length) || (t.identitySchema && Object.keys(t.identitySchema).length);
-      }
-    );
+    return Object.values(config).filter((t) => {
+      if (!fs.existsSync(path.resolve("tools", `${t.name}.js`))) return false;
+      return (
+        (t.inputSchema && Object.keys(t.inputSchema).length) ||
+        (t.identitySchema && Object.keys(t.identitySchema).length)
+      );
+    });
   } catch {
     return [];
   }
@@ -67,7 +64,8 @@ export function listNotWorkingTools() {
   try {
     const config = JSON.parse(fs.readFileSync("unused_tools.json", "utf-8"));
     return Object.values(config).filter(
-      t => (t.inputSchema && Object.keys(t.inputSchema).length) ||
+      (t) =>
+        (t.inputSchema && Object.keys(t.inputSchema).length) ||
         (t.identitySchema && Object.keys(t.identitySchema).length)
     );
   } catch {
