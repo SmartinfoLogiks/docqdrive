@@ -1,6 +1,11 @@
 import { getDBClient } from "../utils/dbClient.js";
 import { DB_CONFIG } from "../config/dbConfig.js";
 
+function sanitize(value) {
+  return value === undefined ? null : value;
+}
+
+
 export async function insertFileRecord(fileData) {
   if (DB_CONFIG.ENGINE === "mysql") {
     return await insertFileRecordMySQL(fileData);
@@ -35,18 +40,18 @@ async function insertFileRecordMySQL(fileData) {
   `;
 
   const params = [
-    file_name,
-    relative_path,
-    storage_type,
-    bucket,
-    size,
-    mimetype,
-    exp,
-    upload_status,
-    blocked,
-    created_by,
-    edited_by,
-  ];
+  sanitize(file_name),
+  sanitize(relative_path),
+  sanitize(storage_type),
+  sanitize(bucket),
+  sanitize(size),
+  sanitize(mimetype),
+  sanitize(exp),
+  sanitize(upload_status),
+  sanitize(blocked),
+  sanitize(created_by),
+  sanitize(edited_by),
+];
 
   const db = await getDBClient();
   const [result] = await db.execute(sql, params);

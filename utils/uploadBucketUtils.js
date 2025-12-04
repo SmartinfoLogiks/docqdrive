@@ -1,25 +1,54 @@
 import fs from "fs";
 import path from "path";
+import { pipeline } from "stream/promises";
 import { uploadFileSchema } from "../validations/uploadFileValidation.js";
-import { insertFileRecord } from "../db/fileQueries.js"; // 👈 new import
-import dotenv from "dotenv"
+import { insertFileRecord } from "../db/fileQueries.js";
+import {
+  detectMimeFromBase64,
+  detectMimeFromUrl,
+  generateFileName,
+} from "../utils/fileHelpers.js";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-/**
- * Upload a file to a local bucket folder.
- *
- * @param {string} bucket - Name of the target bucket.
- * @param {string} storage_type - Storage type (should be 'local' for this function).
- * @param {string} uploadPath - Subpath inside the bucket (optional).
- * @param {string} filename - Final filename to store.
- * @param {string} mimetype - MIME type of the file (e.g. 'application/pdf').
- * @param {string} mode - 'attachment' or 'content' mode.
- * @param {number} exp - Expiration time in seconds (optional).
- * @param {object} file - The uploaded file object (from multer/form-data).
- * @param {boolean} overwrite - Whether to overwrite existing file (default false).
- * @returns {Promise<object>} Upload metadata.
- */
+async function downloadUrlToFile(url, destFilePath) {
+  let response;
+  try {
+    response = await fetch(url, {
+      redirect: "follow",
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        Accept: "*/*",
+      },
+    });
+  } catch (err) {
+    throw new Error(`Failed to fetch URL: ${err.message}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch URL. HTTP ${response.status}`);
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("text/html")) {
+    throw new Error(
+      "URL returned HTML page, not a file. Use a direct file link."
+    );
+  }
+
+  await pipeline(response.body, fs.createWriteStream(destFilePath));
+
+  const contentLengthHeader = response.headers.get("content-length");
+  return {
+    success: true,
+    contentType,
+    contentLength: contentLengthHeader
+      ? parseInt(contentLengthHeader, 10)
+      : null,
+  };
+}
+
 export async function uploadLocalBucket(
   bucket,
   storage_type,
@@ -32,6 +61,23 @@ export async function uploadLocalBucket(
   overwrite = false
 ) {
   try {
+    if (!filename) {
+      filename = generateFileName(file?.originalname, mimetype);
+    }
+
+    if (!mimetype) {
+      if (mode === "attachment" && file?.mimetype) {
+        mimetype = file.mimetype;
+      } else if (mode === "content") {
+        mimetype = detectMimeFromBase64(file);
+      } else if (mode === "url") {
+        mimetype = detectMimeFromUrl(file);
+      } else {
+        mimetype = "application/octet-stream";
+      }
+    }
+
+    // Validate
     const { error } = uploadFileSchema.validate({
       bucket,
       storage_type,
@@ -41,88 +87,90 @@ export async function uploadLocalBucket(
       mode,
       exp,
       overwrite,
+      file,
     });
+
     if (error) throw new Error(error.details[0].message);
 
     if (storage_type !== "local") {
       throw new Error(`Unsupported storage type: ${storage_type}`);
     }
 
-    //const baseDir = path.join(process.cwd(), "buckets");
-    
+    // Resolve bucket dir
+    const baseDir = process.env.BASE_STORAGE_PATH
+      ? path.resolve(process.env.BASE_STORAGE_PATH)
+      : path.join(process.cwd(), "buckets");
 
-    const baseDirt = process.env.BASE_STORAGE_PATH || process.cwd();
-    
-    const baseDir = path.join(process.cwd(), "buckets");
-    
     const bucketDir = path.join(baseDir, bucket);
 
-    
-    
-    
     if (!fs.existsSync(bucketDir)) {
       throw new Error(`Bucket "${bucket}" does not exist.`);
     }
 
-    // Determine target directory
     const finalDir = uploadPath ? path.join(bucketDir, uploadPath) : bucketDir;
     if (!fs.existsSync(finalDir)) fs.mkdirSync(finalDir, { recursive: true });
 
     const destFilePath = path.join(finalDir, filename);
 
-    // Prevent overwrite unless allowed
     if (fs.existsSync(destFilePath) && !overwrite) {
-      throw new Error(`File "${filename}" already exists in bucket "${bucket}".`);
+      throw new Error(
+        `File "${filename}" already exists in bucket "${bucket}".`
+      );
     }
 
-    // Handle file saving based on mode
+    // Handle modes
     if (mode === "attachment") {
-      if (!file || !file.path) {
-        throw new Error("No file uploaded in attachment mode.");
+      if (!file || typeof file !== "object" || !file.path) {
+        throw new Error("Invalid file object in attachment mode.");
       }
 
       await fs.promises.copyFile(file.path, destFilePath);
       if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     } else if (mode === "content") {
-      if (!file || typeof file !== "string") {
-        throw new Error("File content must be a base64 string in content mode.");
-      }
-
       const buffer = Buffer.from(file, "base64");
       await fs.promises.writeFile(destFilePath, buffer);
+    } else if (mode === "url") {
+      if (!file || typeof file !== "string")
+        throw new Error("URL string required for url mode.");
+
+      const result = await downloadUrlToFile(file, destFilePath);
+
+      // Update mimetype if available from server
+      if (
+        (!mimetype || mimetype === "application/octet-stream") &&
+        result.contentType
+      ) {
+        mimetype = result.contentType;
+      }
     } else {
-      throw new Error(`Invalid mode: ${mode}. Use "attachment" or "content".`);
+      throw new Error(`Invalid mode: ${mode}`);
     }
 
+    // Metadata
     const stats = fs.statSync(destFilePath);
-    const fileSize = stats.size;
-
-    // Build metadata
     const metadata = {
       file_name: filename,
-      relative_path: `/buckets/${bucket}${uploadPath ? `/${uploadPath}` : ""}/${filename}`,
+      relative_path: `/buckets/${bucket}${
+        uploadPath ? "/" + uploadPath : ""
+      }/${filename}`,
       storage_type,
       bucket,
-      size: fileSize || 0,
+      size: stats.size,
       mimetype,
-      exp: parseInt(exp),
+      exp,
       mode,
-      uploaded_at: new Date().toISOString()
+      uploaded_at: new Date().toISOString(),
     };
 
-    // Insert record and capture the returned ID
     const insertResult = await insertFileRecord(metadata);
     metadata.id = insertResult?.id || null;
 
-    console.log("File uploaded and metadata inserted:", metadata);
-
     return {
       success: true,
-      message: `File "${filename}" uploaded successfully to bucket "${bucket}"`,
+      message: `File "${filename}" uploaded successfully.`,
       data: metadata,
     };
-  } catch (error) {
-    console.error("Error uploading file:", error.message);
-    return { success: false, error: error.message };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
 }

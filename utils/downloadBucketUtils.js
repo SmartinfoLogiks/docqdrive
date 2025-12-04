@@ -8,7 +8,7 @@ dotenv.config();
 
 
 
-const BASE_URL = process.env.BASE_DOWNLOAD_URL || "http://localhost:8000"; // configure in env
+const BASE_URL = process.env.BASE_DOWNLOAD_URL || "http://192.168.0.27:8000"; // configure in env
 
 const EXP = process.env.DOWNLOAD_TOKEN_EXPIRY || 60*60;
 export async function downloadLocalBucket(fileId, bucket, downloadFlag = "false") {
