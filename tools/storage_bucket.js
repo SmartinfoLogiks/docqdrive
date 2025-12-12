@@ -2,16 +2,16 @@ import {
   createLocalBucket,
   createGoogleDriveBucket,
   createOneDriveBucket,
-} from "../utils/createBucketUtils.js";
-import { uploadLocalBucket } from "../utils/uploadBucketUtils.js";
-import { downloadLocalBucket } from "../utils/downloadBucketUtils.js";
-import { listLocalBucket } from "../utils/listFileUtils.js";
-import { listLocalDirectories } from "../utils/listDirBucketUtils.js";
-import { uploadS3Bucket } from "../utils/uploadS3Bucket.js";
-import { createS3Bucket } from "../utils/createS3Bucket.js";
-import { downloadS3Bucket } from "../utils/downloadS3Bucket.js";
-import { listS3Files } from "../utils/listS3Files.js";
-import { listS3Directories } from "../utils/listS3Directories.js";
+} from "../helpers/createLocalBucket.js";
+import { uploadLocalBucket } from "../helpers/uploadLocalBucket.js";
+import { downloadLocalBucket } from "../helpers/downloadLocalBucket.js";
+import { listLocalFiles } from "../helpers/listLocalFiles.js";
+import { listLocalDirectories } from "../helpers/listLocalDirectories.js";
+import { uploadS3Bucket } from "../helpers/uploadS3Bucket.js";
+import { createS3Bucket } from "../helpers/createS3Bucket.js";
+import { downloadS3Bucket } from "../helpers/downloadS3Bucket.js";
+import { listS3Files } from "../helpers/listS3Files.js";
+import { listS3Directories } from "../helpers/listS3Directories.js";
 
 export async function run(message, params, file) {
   console.log("Storage bucket tool called with:", { message, params });
@@ -194,7 +194,7 @@ export async function run(message, params, file) {
 
       switch (storage_type) {
         case "local":
-          return await listLocalBucket(bucket, filepath);
+          return await listLocalFiles(bucket, filepath);
 
         case "s3": {
           const s3Config = { accessKeyId, secretAccessKey, region, endpoint };

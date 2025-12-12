@@ -1,12 +1,12 @@
 import { CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
 import { validateBucketName } from "../validations/validateBucketName.js";
-import { createS3Client, ensureS3Config } from "./s3Helpers.js";
+import { createS3Client, ensureS3Config } from "../utils/s3Helpers.js";
 
 export async function createS3Bucket(bucket_name, s3Config) {
   try {
-    validateBucketName(bucket_name);
+    await validateBucketName(bucket_name);
 
-    ensureS3Config(s3Config);
+    await ensureS3Config(s3Config);
 
     const client = await createS3Client(s3Config);
     const region = s3Config.region;

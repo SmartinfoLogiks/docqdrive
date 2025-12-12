@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import mime from "mime-types";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -9,7 +9,7 @@ dotenv.config();
  * List only files from a given bucket path (local storage).
  * Returns name, size, mimetype, and last modified timestamp for each file.
  */
-export async function listLocalBucket(bucket, filepath = "") {
+export async function listLocalFiles(bucket, filepath = "") {
   try {
     const baseDir = process.env.BASE_STORAGE_PATH || process.cwd();
     const dirPath = path.join(baseDir, "buckets", bucket, filepath);

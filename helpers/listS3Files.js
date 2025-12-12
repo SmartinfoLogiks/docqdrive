@@ -1,6 +1,6 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import mime from "mime-types";
-import { createS3Client } from "./s3Helpers.js";
+import { createS3Client } from "../utils/s3Helpers.js";
 
 export async function listS3Files({ bucket, prefix = "", s3Config }) {
   try {
