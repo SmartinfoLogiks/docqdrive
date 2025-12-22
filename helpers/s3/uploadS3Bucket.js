@@ -1,12 +1,12 @@
 import fs from "fs";
 import { Upload } from "@aws-sdk/lib-storage";
-import { insertFileRecord } from "../db/fileQueries.js";
+import { insertFileRecord } from "../../db/fileQueries.js";
 import {
   generateFileName,
   detectMimeFromBase64,
   detectMimeFromUrl,
-} from "../utils/fileHelpers.js";
-import { ensureS3Config, createS3Client } from "../utils/s3Helpers.js";
+} from "../../utils/fileHelpers.js";
+import { ensureS3Config, createS3Client } from "./s3Helpers.js";
 
 function buildKey(folder, filename) {
   if (!folder) return filename;

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { createBucketSchema } from "../validations/createBucketValidation.js";
+import { createBucketSchema } from "../../validations/createBucketValidation.js";
 import dotenv from "dotenv";
 
 dotenv.config();

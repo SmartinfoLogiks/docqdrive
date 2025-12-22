@@ -1,13 +1,13 @@
 import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
-import { uploadFileSchema } from "../validations/uploadFileValidation.js";
-import { insertFileRecord } from "../db/fileQueries.js";
+import { uploadFileSchema } from "../../validations/uploadFileValidation.js";
+import { insertFileRecord } from "../../db/fileQueries.js";
 import {
   detectMimeFromBase64,
   detectMimeFromUrl,
   generateFileName,
-} from "../utils/fileHelpers.js";
+} from "../../utils/fileHelpers.js";
 import dotenv from "dotenv";
 
 dotenv.config();

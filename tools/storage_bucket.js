@@ -2,35 +2,53 @@ import {
   createLocalBucket,
   createGoogleDriveBucket,
   createOneDriveBucket,
-} from "../helpers/createLocalBucket.js";
-import { uploadLocalBucket } from "../helpers/uploadLocalBucket.js";
-import { downloadLocalBucket } from "../helpers/downloadLocalBucket.js";
-import { listLocalFiles } from "../helpers/listLocalFiles.js";
-import { listLocalDirectories } from "../helpers/listLocalDirectories.js";
-import { uploadS3Bucket } from "../helpers/uploadS3Bucket.js";
-import { createS3Bucket } from "../helpers/createS3Bucket.js";
-import { downloadS3Bucket } from "../helpers/downloadS3Bucket.js";
-import { listS3Files } from "../helpers/listS3Files.js";
-import { listS3Directories } from "../helpers/listS3Directories.js";
+} from "../helpers/local/createLocalBucket.js";
+import { uploadLocalBucket } from "../helpers/local/uploadLocalBucket.js";
+import { downloadLocalBucket } from "../helpers/local/downloadLocalBucket.js";
+import { listLocalFiles } from "../helpers/local/listLocalFiles.js";
+import { listLocalDirectories } from "../helpers/local/listLocalDirectories.js";
+import { uploadS3Bucket } from "../helpers/s3/uploadS3Bucket.js";
+import { createS3Bucket } from "../helpers/s3/createS3Bucket.js";
+import { downloadS3Bucket } from "../helpers/s3/downloadS3Bucket.js";
+import { listS3Files } from "../helpers/s3/listS3Files.js";
+import { listS3Directories } from "../helpers/s3/listS3Directories.js";
 
 export async function run(message, params, file) {
   console.log("Storage bucket tool called with:", { message, params });
 
   switch (message) {
     case "list_storage_types":
-      return {
-        tool: "storage_bucket",
-        storage_types: [
-          {
-            name: "local",
-            description: "Will store files in local file system",
-            requiredParams: ["bucket_name", "tool", "storage_type", "message"],
-          },
-          { name: "s3", description: "AWS S3 storage" },
-          { name: "one_drive", description: "Microsoft OneDrive storage" },
-          { name: "google_drive", description: "Google Drive storage" },
+  return {
+    tool: "storage_bucket",
+    storage_types: [
+      {
+        name: "local",
+        description: "Will store files in local file system",
+        requiredParams: ["bucket_name", "tool", "storage_type", "message"],
+      },
+      {
+        name: "s3",
+        description: "AWS S3 storage",
+        requiredParams: [
+          "bucket_name",
+          "tool",
+          "storage_type",
+          "message",
+          "accessKeyId",
+          "secretAccessKey",
+          "region"
         ],
-      };
+      },
+      {
+        name: "one_drive",
+        description: "Microsoft OneDrive storage",
+      },
+      {
+        name: "google_drive",
+        description: "Google Drive storage",
+      },
+    ],
+  };
 
     case "create_bucket": {
       const {

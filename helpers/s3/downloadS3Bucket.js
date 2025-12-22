@@ -1,7 +1,7 @@
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getFileById } from "../models/fileModel.js";
-import { createS3Client, ensureS3Config } from "../utils/s3Helpers.js";
+import { getFileById } from "../../models/fileModel.js";
+import { createS3Client, ensureS3Config } from "./s3Helpers.js";
 
 export async function downloadS3Bucket({
   fileId,

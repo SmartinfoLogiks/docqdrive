@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { getFileById } from "../models/fileModel.js";
-import { createDownloadToken } from "../utils/downloadToken.js";
+import { getFileById } from "../../models/fileModel.js";
+import { createDownloadToken } from "../../utils/downloadToken.js";
 import dotenv from "dotenv";
 
 dotenv.config();
