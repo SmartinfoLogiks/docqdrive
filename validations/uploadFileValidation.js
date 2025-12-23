@@ -9,7 +9,7 @@ export const uploadFileSchema = Joi.object({
   filename: Joi.string().optional(),
   mimetype: Joi.string().optional(),
   mode: Joi.string().valid("attachment", "content", "url").required(),
-  exp: Joi.number().integer().positive().required(),
+  exp: Joi.number().integer().positive().optional(),
   overwrite: Joi.boolean().optional(),
 
   file: Joi.alternatives().conditional("mode", {
