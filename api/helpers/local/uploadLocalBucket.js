@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
-import { uploadFileSchema } from "../../validations/uploadFileValidation.js";
+import { uploadFileSchema } from "../../validations/storage_bucket/uploadFileValidation.js";
 import { insertFileRecord } from "../../db/fileQueries.js";
 import {
   detectMimeFromBase64,

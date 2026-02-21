@@ -12,8 +12,8 @@ import {
 } from "./run.js";
 
 import multer from "multer"; // Resolve absolute path to the "buckets" directory
-import downloadRouter from "../routes/downloadRouter.js";
-import { startDeleteExpiredFilesCron } from "../cron/deleteExpiredFiles.js"; // <-- add this
+import downloadRouter from "./routes/downloadRouter.js";
+import { startDeleteExpiredFilesCron } from "./cron/deleteExpiredFiles.js"; // <-- add this
 
 dotenv.config();
 
@@ -119,7 +119,7 @@ export async function runRestServer() {
   app.post("/", (_, res) => res.json({ status: "running" }));
 
   //Add your cron start here
-  startDeleteExpiredFilesCron();
+  // startDeleteExpiredFilesCron();
 
   const port = process.env.REST_PORT || 8000;
   app.listen(port, () =>
