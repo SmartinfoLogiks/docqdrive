@@ -1,0 +1,35 @@
+{
+	"storage": {
+		"storage1": {
+			"label": "Local Drive",
+			"driver": "local",
+			"params": {
+				"root_path": "/var/www/html/usermedia"
+			},
+			"acl": {
+				"/business/*": ["admin", "business_l1"],
+				"/graphics/images/*": ["digital_media"]
+			}
+		},
+		"storage2": {
+			"label": "S3 Drive 1",
+			"driver": "s3",
+			"params": {
+				"aws_key": "",
+				"aws_secret": "",
+				"aws_bucket": "",
+				"aws_default_policy": ""
+			}
+		},
+		"storage3": {
+			"label": "S3 Drive 2",
+			"driver": "s3",
+			"params": {
+				"aws_key": "",
+				"aws_secret": "",
+				"aws_bucket": "",
+				"aws_default_policy": ""
+			}
+		}
+	}
+}
