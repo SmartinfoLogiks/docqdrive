@@ -13,6 +13,7 @@ import {
 
 import multer from "multer"; // Resolve absolute path to the "buckets" directory
 import downloadRouter from "./routes/downloadRouter.js";
+import filesRouter from "./routes/filesRouter.js";
 import { startDeleteExpiredFilesCron } from "./cron/deleteExpiredFiles.js"; // <-- add this
 
 dotenv.config();
@@ -53,6 +54,8 @@ export async function runRestServer() {
 
   app.use(cors());
   app.use(express.json());
+  // upload.single("file")
+  app.use(filesRouter);
 
   app.post("/initiate_run", (req, res) => {
     try {
