@@ -16,10 +16,10 @@ export async function downloadLocalBucket(
 ) {
   try {
     const fileRecord = await getFileById(fileId, bucket);
-    if (!fileRecord) throw new Error("File not found or expire.");
+    if (!fileRecord) throw new Error("File not found or expired.");
 
     if (fileRecord.blocked === "true") {
-      throw new Error("File is expire and cannot be downloaded.");
+      throw new Error("File is expired and cannot be downloaded.");
     }
 
     const baseDir = process.env.BASE_STORAGE_PATH || process.cwd();
