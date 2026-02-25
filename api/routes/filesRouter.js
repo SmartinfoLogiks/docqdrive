@@ -4,7 +4,7 @@ import path from "path";
 import upload from "../middlewares/upload.js";
 import authMiddleware from "../middlewares/auth.js";
 import { uploadLocalBucket } from "../helpers/local/uploadLocalBucket.js";
-import { getFileById } from "../models/fileModel.js";
+import { deleteFileById, getFileById } from "../models/fileModel.js";
 import { uploadS3Bucket } from "../helpers/s3/uploadS3Bucket.js";
 import { validateStorageACL } from "../utils/acl.js"
 import { downloadLocalBucket } from "../helpers/local/downloadLocalBucket.js";
@@ -137,7 +137,6 @@ router.get("/files/:storage_bucket/:file_id", authMiddleware, async (req, res) =
                 console.log("uploadPath: ", `/${uploadPath}`)
                 validateStorageACL(req.user.scope, bucketConfig.acl, `/${uploadPath}`);
 
-
                 const response = await downloadLocalBucket(fileId, storageBucket, req.query.download);
                 return res.json(response);
             }
@@ -179,12 +178,12 @@ router.get("/files/:storage_bucket/:file_id", authMiddleware, async (req, res) =
             case "one_drive":
                 return res.json({
                     status: "error",
-                    message: "OneDrive upload not yet implemented",
+                    message: "OneDrive not yet implemented",
                 });
             case "google_drive":
                 return res.json({
                     status: "error",
-                    message: "Google Drive upload not yet implemented",
+                    message: "Google Drive not yet implemented",
                 });
             default:
                 return res.json({ status: "error", message: "Unsupported storage type" });
@@ -194,9 +193,77 @@ router.get("/files/:storage_bucket/:file_id", authMiddleware, async (req, res) =
     }
 });
 
-
 // Delete file by id
+router.delete("/files/:storage_bucket/:file_id", authMiddleware, async (req, res) => {
+    try {
+        const { storage_bucket: storageBucket, file_id: fileId } = req.params;
+        console.log("storage_bucket: ", storageBucket)
+        const bucketConfig = config['storage'][storageBucket];
+        if (!bucketConfig) {
+            return res.status(400).json({ status: "error", msg: "Bucket configuration missing" });
+        }
 
+        console.log("bucketConfig: ", bucketConfig)
+        console.log("req.user - ", req.user)
+
+        // TODO: NOT DELETING FROM ACTUAL SOURCE E.G. LOCAL, S3
+        const storageType = bucketConfig.driver;
+        switch (storageType) {
+            case "local": {
+                const fileRecord = await getFileById(fileId, storageBucket);
+                console.log("fileRecord: ", fileRecord)
+                if (!fileRecord) throw new Error("File not found or expired.");
+
+                if (fileRecord.blocked === "true") {
+                    throw new Error("File not found or expired.");
+                }
+
+                let uploadPath = path.posix.dirname(fileRecord.relative_path);
+                console.log("uploadPath: ", uploadPath)
+                uploadPath = path.posix.normalize(uploadPath).split("/").filter(Boolean).slice(2).join("/");
+                console.log("uploadPath: ", `/${uploadPath}`)
+                validateStorageACL(req.user.scope, bucketConfig.acl, `/${uploadPath}`);
+
+                await deleteFileById(fileId, storageBucket);
+                return res.json({ status: "success", msg: "File deleted successfully" });
+            }
+
+            case "s3": {
+                const fileRecord = await getFileById(fileId, bucketConfig.params.aws_bucket);
+                console.log("fileRecord: ", fileRecord)
+                if (!fileRecord) throw new Error("File not found or expired");
+
+                if (fileRecord.blocked === "true") {
+                    throw new Error("File not found or expired");
+                }
+
+                let uploadPath = path.posix.dirname(fileRecord.relative_path);
+                console.log("uploadPath: ", uploadPath)
+                uploadPath = path.posix.normalize(uploadPath).split("/").filter(Boolean).slice(2).join("/");
+                console.log("uploadPath: ", `/${uploadPath}`)
+                validateStorageACL(req.user.scope, bucketConfig.acl, `/${uploadPath}`);
+
+                await deleteFileById(fileId, bucketConfig.params.aws_bucket);
+                return res.json({ status: "success", msg: "File deleted successfully" });
+            }
+
+            case "one_drive":
+                return res.json({
+                    status: "error",
+                    message: "OneDrive not yet implemented",
+                });
+            case "google_drive":
+                return res.json({
+                    status: "error",
+                    message: "Google Drive not yet implemented",
+                });
+            default:
+                return res.json({ status: "error", message: "Unsupported storage type" });
+        }
+    } catch (e) {
+        res.status(400).json({ status: "error", msg: e?.message || "Something went wrong" });
+    }
+});
 
 export default router;
 

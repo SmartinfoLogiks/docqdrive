@@ -11,6 +11,15 @@ export async function getFileById(fileId, bucket) {
   }
 }
 
+export async function deleteFileById(fileId, bucket) {
+  console.log("deleteFileById: ", fileId, bucket)
+  if (DB_CONFIG.ENGINE === "mysql") {
+    return await deleteFileByIdMySQL(fileId, bucket);
+  } else {
+    throw new Error(`Unsupported DB engine: ${DB_CONFIG.ENGINE}`);
+  }
+}
+
 // ---------- MySQL Implementation ----------
 async function getFileByIdMySQL(fileId, bucket) {
   const db = await getDBClient();
@@ -24,6 +33,18 @@ async function getFileByIdMySQL(fileId, bucket) {
 
   const [rows] = await db.execute(sql, [fileId, bucket]);
   return rows.length > 0 ? rows[0] : null;
+}
+
+async function deleteFileByIdMySQL(fileId, bucket) {
+  const db = await getDBClient();
+
+  const sql = `
+    UPDATE file_tbl SET blocked = "true" WHERE id = '${fileId}'
+  `;
+
+  const [result] = await db.execute(sql, []);
+  console.log("result:" , result)
+  return true;
 }
 
 // ---------- MongoDB Implementation ----------
