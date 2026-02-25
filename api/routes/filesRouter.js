@@ -108,50 +108,55 @@ router.post("/files/:storage_bucket", authMiddleware, upload.single('file'), asy
 
 // Get file URL by id
 router.get("/files/:storage_bucket/:file_id", authMiddleware, async (req, res) => {
-    console.log("file: ", req.file)
     try {
         const { storage_bucket: storageBucket, file_id: fileId } = req.params;
-        console.log("storage_bucket: ", storageBucket, req.body)
-        let {
-            filename,
-            mode,
-            file,
-            exp,
-            overwrite,
-            mimetype,
-            url
-        } = req.body;
-        if (!file && req.file) file = req.file;
+        console.log("storage_bucket: ", storageBucket)
         const bucketConfig = config['storage'][storageBucket];
         if (!bucketConfig) {
-            res.status(400).json({ status: "error", msg: "Bucket configuration missing" });
+            return res.status(400).json({ status: "error", msg: "Bucket configuration missing" });
         }
 
         console.log("bucketConfig: ", bucketConfig)
         console.log("req.user - ", req.user)
 
-        const fileRecord = await getFileById(fileId, bucketConfig.params.aws_bucket);
-        console.log("fileRecord: ", fileRecord)
-        if (!fileRecord) throw new Error("File not found or expired.");
-
-        if (fileRecord.blocked === "true") {
-            throw new Error("File is expired and cannot be downloaded.");
-        }
-
-        let uploadPath = path.posix.dirname(fileRecord.relative_path);
-        console.log("uploadPath: ", uploadPath)
-        uploadPath = path.posix.normalize(uploadPath).split("/").filter(Boolean).slice(2).join("/");
-        console.log("uploadPath: ", `/${uploadPath}`)
-        validateStorageACL(req.user.scope, bucketConfig.acl, `/${uploadPath}`);
 
         const storageType = bucketConfig.driver;
         switch (storageType) {
             case "local": {
+                const fileRecord = await getFileById(fileId, storageBucket);
+                console.log("fileRecord: ", fileRecord)
+                if (!fileRecord) throw new Error("File not found or expired.");
+
+                if (fileRecord.blocked === "true") {
+                    throw new Error("File is expired and cannot be downloaded.");
+                }
+
+                let uploadPath = path.posix.dirname(fileRecord.relative_path);
+                console.log("uploadPath: ", uploadPath)
+                uploadPath = path.posix.normalize(uploadPath).split("/").filter(Boolean).slice(2).join("/");
+                console.log("uploadPath: ", `/${uploadPath}`)
+                validateStorageACL(req.user.scope, bucketConfig.acl, `/${uploadPath}`);
+
+
                 const response = await downloadLocalBucket(fileId, storageBucket, req.query.download);
                 return res.json(response);
             }
 
             case "s3": {
+                const fileRecord = await getFileById(fileId, bucketConfig.params.aws_bucket);
+                console.log("fileRecord: ", fileRecord)
+                if (!fileRecord) throw new Error("File not found or expired.");
+
+                if (fileRecord.blocked === "true") {
+                    throw new Error("File is expired and cannot be downloaded.");
+                }
+
+                let uploadPath = path.posix.dirname(fileRecord.relative_path);
+                console.log("uploadPath: ", uploadPath)
+                uploadPath = path.posix.normalize(uploadPath).split("/").filter(Boolean).slice(2).join("/");
+                console.log("uploadPath: ", `/${uploadPath}`)
+                validateStorageACL(req.user.scope, bucketConfig.acl, `/${uploadPath}`);
+
                 const s3Config = {
                     accessKeyId: bucketConfig.params.aws_key,
                     secretAccessKey: bucketConfig.params.aws_secret,
