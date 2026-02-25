@@ -7,8 +7,13 @@
 				"root_path": "/var/www/html/usermedia"
 			},
 			"acl": {
-				"/business/*": ["admin", "business_l1"],
-				"/graphics/images/*": ["digital_media"]
+				"/business/*": [
+					"admin",
+					"business_l1"
+				],
+				"/graphics/images/*": [
+					"digital_media"
+				]
 			}
 		},
 		"storage2": {
@@ -18,7 +23,9 @@
 				"aws_key": "",
 				"aws_secret": "",
 				"aws_bucket": "",
-				"aws_default_policy": ""
+				"aws_default_policy": "",
+				"aws_region": "",
+				"aws_endpoint": ""
 			}
 		},
 		"storage3": {
