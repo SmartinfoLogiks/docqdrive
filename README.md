@@ -300,5 +300,21 @@ POST /run?tool=storage_bucket&message=list_dir&storage_type=local&bucket=mybucke
 
 ---
 
+# Files APIs
+1. Upload file <br>
+curl --location 'http://192.168.0.27:6104/files/storage2' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywiZW1haWwiOiJ1c2VyMUBleGFtcGxlLmNvbSIsInNjb3BlIjpbImFkbWluIl0sImlhdCI6MTc3MjAxOTM2NSwiZXhwIjoxNzcyMTA1NzY1LCJpc3MiOiJteS1hcGkifQ.Du3Xy3Ji-nxRRyfYMXV7x3Bmzxz9ZnaHW_PzQvD5iS4' \
+--form 'path="/dir1/dir2"' \
+--form 'filename="testing_file8.txt"' \
+--form 'mode="attachment"' \
+--form 'file=@"/home/silkadmin/Downloads/reference_tbl"'
 
-```
+2. Get file URL <br>
+curl --location 'http://192.168.0.27:6104/files/storage2/268eef46-124c-11f1-bf73-0242ac110003?download=true' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywiZW1haWwiOiJ1c2VyMUBleGFtcGxlLmNvbSIsInNjb3BlIjpbImFkbWluIl0sImlhdCI6MTc3MjAxOTM2NSwiZXhwIjoxNzcyMTA1NzY1LCJpc3MiOiJteS1hcGkifQ.Du3Xy3Ji-nxRRyfYMXV7x3Bmzxz9ZnaHW_PzQvD5iS4' \
+--data ''
+
+3. Delete a file <br>
+curl --location --request DELETE 'http://192.168.0.27:6104/files/storage2/268eef46-124c-11f1-bf73-0242ac110003' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywiZW1haWwiOiJ1c2VyMUBleGFtcGxlLmNvbSIsInNjb3BlIjpbImFkbWluIl0sImlhdCI6MTc3MjAxOTM2NSwiZXhwIjoxNzcyMTA1NzY1LCJpc3MiOiJteS1hcGkifQ.Du3Xy3Ji-nxRRyfYMXV7x3Bmzxz9ZnaHW_PzQvD5iS4' \
+--data ''
