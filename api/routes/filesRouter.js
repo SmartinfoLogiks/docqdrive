@@ -9,6 +9,8 @@ import { uploadS3Bucket } from "../helpers/s3/uploadS3Bucket.js";
 import { validateStorageACL } from "../utils/acl.js"
 import { downloadLocalBucket } from "../helpers/local/downloadLocalBucket.js";
 import { downloadS3Bucket } from "../helpers/s3/downloadS3Bucket.js";
+import { listLocalDirectories } from "../helpers/local/listLocalDirectories.js";
+import { listS3Directories } from "../helpers/s3/listS3Directories.js";
 const config = JSON.parse(fs.readFileSync(process.cwd() + "/config.json"));
 console.log("config: ", config)
 const router = express.Router();
@@ -245,6 +247,65 @@ router.delete("/files/:storage_bucket/:file_id", authMiddleware, async (req, res
 
                 await deleteFileById(fileId, bucketConfig.params.aws_bucket);
                 return res.json({ status: "success", msg: "File deleted successfully" });
+            }
+
+            case "one_drive":
+                return res.json({
+                    status: "error",
+                    message: "OneDrive not yet implemented",
+                });
+            case "google_drive":
+                return res.json({
+                    status: "error",
+                    message: "Google Drive not yet implemented",
+                });
+            default:
+                return res.json({ status: "error", message: "Unsupported storage type" });
+        }
+    } catch (e) {
+        res.status(400).json({ status: "error", msg: e?.message || "Something went wrong" });
+    }
+});
+
+// List folders in a path
+router.post("/files/:storage_bucket/list_folders", authMiddleware, async (req, res) => {
+    try {
+        const { storage_bucket: storageBucket } = req.params;
+        if (!req.body.path) {
+            return res.status(400).json({ status: "error", msg: "Please provide a path" });
+        }
+
+        console.log("storage_bucket: ", storageBucket)
+        const bucketConfig = config['storage'][storageBucket];
+        if (!bucketConfig) {
+            return res.status(400).json({ status: "error", msg: "Bucket configuration missing" });
+        }
+
+        console.log("bucketConfig: ", bucketConfig)
+        console.log("req.user - ", req.user)
+
+        const storageType = bucketConfig.driver;
+        switch (storageType) {
+            case "local": {
+                validateStorageACL(req.user.scope, bucketConfig.acl, req.body.path);
+
+                const response = await listLocalDirectories(storageBucket, req.body.path);
+                console.log("response: ", response)
+                return res.json(response);
+            }
+
+            case "s3": {
+                validateStorageACL(req.user.scope, bucketConfig.acl, req.body.path);
+
+                const s3Config = { accessKeyId: bucketConfig.params.aws_key, secretAccessKey: bucketConfig.params.aws_secret, region: bucketConfig.params.aws_region, endpoint: bucketConfig.params.aws_endpoint };
+                const response = await listS3Directories({
+                    bucket: bucketConfig.params.aws_bucket,
+                    prefix: req.body.path,
+                    s3Config,
+                });
+
+                console.log("response: ", response)
+                return res.json(response);
             }
 
             case "one_drive":

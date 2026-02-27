@@ -15,7 +15,6 @@ export async function listLocalDirectories(bucket, filepath = "") {
   try {
     const baseDir = process.env.BASE_STORAGE_PATH || process.cwd();
     const dirPath = path.join(baseDir, "buckets", bucket, filepath);
-
     if (!fs.existsSync(dirPath)) {
       return { status: "error", message: `Path not found: ${dirPath}` };
     }
