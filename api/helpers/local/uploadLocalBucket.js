@@ -1,15 +1,15 @@
 import fs from "fs";
 import path from "path";
-import { pipeline } from "stream/promises";
+import os from "os";
 import { uploadFileSchema } from "../../validations/storage_bucket/uploadFileValidation.js";
 import { insertFileRecord } from "../../db/fileQueries.js";
 import {
+  generateFileName,
   detectMimeFromBase64,
   detectMimeFromUrl,
-  generateFileName,
 } from "../../utils/fileHelpers.js";
+import { encryptFile } from "../../utils/encryptionHelpers.js";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 async function downloadUrlToFile(url, destFilePath) {
@@ -61,98 +61,63 @@ export async function uploadLocalBucket(
   overwrite = false
 ) {
   try {
-    if (!filename) {
-      filename = generateFileName(file?.originalname, mimetype);
-    }
-
+    if (!filename) filename = generateFileName(file?.originalname, mimetype);
     if (!mimetype) {
-      if (mode === "attachment" && file?.mimetype) {
-        mimetype = file.mimetype;
-      } else if (mode === "content") {
-        mimetype = detectMimeFromBase64(file);
-      } else if (mode === "url") {
-        mimetype = detectMimeFromUrl(file);
-      } else {
-        mimetype = "application/octet-stream";
-      }
+      if (mode === "attachment" && file?.mimetype) mimetype = file.mimetype;
+      else if (mode === "content") mimetype = detectMimeFromBase64(file);
+      else if (mode === "url") mimetype = detectMimeFromUrl(file);
+      else mimetype = "application/octet-stream";
     }
 
-    // Validate
-    const { error } = uploadFileSchema.validate({
-      bucket,
-      storage_type,
-      uploadPath,
-      filename,
-      mimetype,
-      mode,
-      exp,
-      overwrite,
-      file,
-    });
-
+    const { error } = uploadFileSchema.validate({ bucket, storage_type, uploadPath, filename, mimetype, mode, exp, overwrite, file });
     if (error) throw new Error(error.details[0].message);
 
-    if (storage_type !== "local") {
-      throw new Error(`Unsupported storage type: ${storage_type}`);
-    }
-
-    // Resolve bucket dir
-    const baseDir = process.env.BASE_STORAGE_PATH
-      ? path.resolve(process.env.BASE_STORAGE_PATH)
-      : path.join(process.cwd(), "buckets");
-
+    const baseDir = process.env.BASE_STORAGE_PATH ? path.resolve(process.env.BASE_STORAGE_PATH) : path.join(process.cwd(), "buckets");
     const bucketDir = path.join(baseDir, bucket);
-
-    if (!fs.existsSync(bucketDir)) {
-      throw new Error(`Bucket "${bucket}" does not exist.`);
-    }
+    if (!fs.existsSync(bucketDir)) throw new Error(`Bucket "${bucket}" does not exist.`);
 
     const finalDir = uploadPath ? path.join(bucketDir, uploadPath) : bucketDir;
     if (!fs.existsSync(finalDir)) fs.mkdirSync(finalDir, { recursive: true });
 
     const destFilePath = path.join(finalDir, filename);
+    if (fs.existsSync(destFilePath) && !overwrite) throw new Error(`File "${filename}" already exists.`);
 
-    if (fs.existsSync(destFilePath) && !overwrite) {
-      throw new Error(
-        `File "${filename}" already exists in bucket "${bucket}".`
-      );
-    }
+    let tempInputPath = null;
 
-    // Handle modes
     if (mode === "attachment") {
-      if (!file || typeof file !== "object" || !file.path) {
-        throw new Error("Invalid file object in attachment mode.");
-      }
-
-      await fs.promises.copyFile(file.path, destFilePath);
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      if (!file?.path) throw new Error("Invalid file object in attachment mode");
+      tempInputPath = file.path;
     } else if (mode === "content") {
-      const buffer = Buffer.from(file, "base64");
-      await fs.promises.writeFile(destFilePath, buffer);
+      if (typeof file !== "string") throw new Error("Base64 string required for content mode");
+      tempInputPath = path.join(os.tmpdir(), `upload_content_${Date.now()}.tmp`);
+      await fs.promises.writeFile(tempInputPath, Buffer.from(file, "base64"));
     } else if (mode === "url") {
-      if (!file || typeof file !== "string")
-        throw new Error("URL string required for url mode.");
+      if (typeof file !== "string") throw new Error("URL string required for url mode");
+      tempInputPath = path.join(os.tmpdir(), `upload_url_${Date.now()}.tmp`);
+      const response = await fetch(file, { redirect: "follow", headers: { "User-Agent": "Mozilla/5.0", Accept: "*/*" } });
+      if (!response.ok) throw new Error(`Failed to fetch URL. HTTP ${response.status}`);
+      const buffer = await response.arrayBuffer();
+      await fs.promises.writeFile(tempInputPath, Buffer.from(buffer));
 
-      const result = await downloadUrlToFile(file, destFilePath);
-
-      // Update mimetype if available from server
-      if (
-        (!mimetype || mimetype === "application/octet-stream") &&
-        result.contentType
-      ) {
-        mimetype = result.contentType;
+      const contentType = response.headers.get("content-type") || "";
+      if ((!mimetype || mimetype === "application/octet-stream") && contentType) {
+        mimetype = contentType.split(";")[0];
       }
-    } else {
-      throw new Error(`Invalid mode: ${mode}`);
+    } else throw new Error(`Invalid mode: ${mode}`);
+
+    await encryptFile(tempInputPath, destFilePath);
+
+    // Cleanup temp file (except original attachment which is handled by multer)
+    if (mode !== "attachment" && tempInputPath && fs.existsSync(tempInputPath)) {
+      fs.unlinkSync(tempInputPath);
+    } else if (mode === "attachment" && fs.existsSync(tempInputPath)) {
+      fs.unlinkSync(tempInputPath);
     }
 
-    // Metadata
     const stats = fs.statSync(destFilePath);
     const metadata = {
       file_name: filename,
-      relative_path: `/buckets/${bucket}${
-        uploadPath ? "/" + uploadPath : ""
-      }/${filename}`,
+      relative_path: `buckets/${bucket}${uploadPath ? "/" + uploadPath : ""}/${filename}`,
       storage_type,
       bucket,
       size: stats.size,
@@ -160,16 +125,13 @@ export async function uploadLocalBucket(
       exp,
       mode,
       uploaded_at: new Date().toISOString(),
+      encrypted: true,
     };
 
     const insertResult = await insertFileRecord(metadata);
     metadata.id = insertResult?.id || null;
 
-    return {
-      success: true,
-      message: `File "${filename}" uploaded successfully.`,
-      data: metadata,
-    };
+    return { success: true, message: `File "${filename}" uploaded successfully.`, data: metadata };
   } catch (err) {
     return { success: false, error: err.message };
   }
