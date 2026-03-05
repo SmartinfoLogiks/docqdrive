@@ -105,6 +105,8 @@ export async function uploadLocalBucket(
       }
     } else throw new Error(`Invalid mode: ${mode}`);
 
+    // THIS IS HAPPENING IN REAL TIME NOT IN BACKGROUD
+    // MAY USE LOT OF MEMORY FOR LARGE FILES
     await encryptFile(tempInputPath, destFilePath);
 
     // Cleanup temp file (except original attachment which is handled by multer)
